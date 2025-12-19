@@ -18,4 +18,18 @@ export class ClientsService {
     this.clients.push(newClient);
     return newClient;
   }
+
+  update(id: number, name: string): Client | undefined {
+    const client = this.findOne(id);
+    if (!client) return undefined;
+    client.name = name;
+    return client;
+  }
+
+  remove(id: number): boolean {
+    const index = this.clients.findIndex((c) => c.id === id);
+    if (index === -1) return false;
+    this.clients.splice(index, 1);
+    return true;
+  }
 }
