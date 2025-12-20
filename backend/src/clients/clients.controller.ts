@@ -40,6 +40,6 @@ export class ClientsController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return { success: this.clientsService.remove(Number(id)) };
+    return this.clientsService.remove(Number(id));
   }
 }
