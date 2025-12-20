@@ -1,35 +1,27 @@
 import { Injectable } from '@nestjs/common';
-import type { Client } from './client.type';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ClientsService {
-  private clients: Client[] = [];
+  constructor(private readonly prisma: PrismaService) {}
 
-  findAll(): Client[] {
-    return this.clients;
+  findAll() {
+    return this.prisma.client.findMany({ orderBy: { id: 'asc' } });
   }
 
-  findOne(id: number): Client | undefined {
-    return this.clients.find((c) => c.id === id);
+  findOne(id: number) {
+    return this.prisma.client.findUnique({ where: { id } });
   }
 
-  create(name: string): Client {
-    const newClient: Client = { id: this.clients.length + 1, name };
-    this.clients.push(newClient);
-    return newClient;
+  create(name: string) {
+    return this.prisma.client.create({ data: { name } });
   }
 
-  update(id: number, name: string): Client | undefined {
-    const client = this.findOne(id);
-    if (!client) return undefined;
-    client.name = name;
-    return client;
+  update(id: number, name: string) {
+    return this.prisma.client.update({ where: { id }, data: { name } });
   }
 
-  remove(id: number): boolean {
-    const index = this.clients.findIndex((c) => c.id === id);
-    if (index === -1) return false;
-    this.clients.splice(index, 1);
-    return true;
+  remove(id: number) {
+    return this.prisma.client.delete({ where: { id } });
   }
 }
