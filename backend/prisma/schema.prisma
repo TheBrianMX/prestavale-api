@@ -13,12 +13,10 @@ enum VoucherStatus {
 }
 
 model Client {
-  id            Int                @id @default(autoincrement())
+  id            Int      @id @default(autoincrement())
   name          String
-  createdAt     DateTime           @default(now())
-
-  // Opcional pero útil para la regla del excedente (saldo a favor)
-  creditBalance Decimal            @default(0) @db.Decimal(12, 2)
+  createdAt     DateTime @default(now())
+  creditBalance Decimal  @default(0) @db.Decimal(12, 2)
 
   commissions   ClientCommission[]
   vouchers      Voucher[]
@@ -27,9 +25,8 @@ model Client {
 model ClientCommission {
   id        Int      @id @default(autoincrement())
   clientId  Int
-  day       Int      // 1..31
-  percent   Decimal  @db.Decimal(5, 2) // ej: 20.00 = 20%
-
+  day       Int
+  percent   Decimal  @db.Decimal(5, 2)
   createdAt DateTime @default(now())
 
   client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
@@ -39,36 +36,31 @@ model ClientCommission {
 }
 
 model Voucher {
-  id          Int          @id @default(autoincrement())
-  clientId    Int
+  id             Int           @id @default(autoincrement())
+  clientId       Int
+  totalAmount    Decimal       @db.Decimal(12, 2)
+  payableAmount  Decimal?      @db.Decimal(12, 2)
+  balance        Decimal       @db.Decimal(12, 2)
+  status         VoucherStatus @default(ACTIVE)
+  createdAt      DateTime      @default(now())
+  dueDate        DateTime
 
-  totalAmount Decimal      @db.Decimal(12, 2) // Monto total del vale
-  payableAmount Decimal?   @db.Decimal(12, 2) // Neto a pagar (total - comisión). Se define al liquidar.
-  balance     Decimal      @db.Decimal(12, 2) // Saldo pendiente (sobre payableAmount cuando se define)
-  status      VoucherStatus @default(ACTIVE)
-
-  createdAt   DateTime     @default(now())
-  dueDate     DateTime     // 15 del mismo mes o del siguiente (según regla)
-
-  client      Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  payments    Payment[]
+  client         Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  payments       Payment[]
 
   @@index([clientId])
   @@index([status])
 }
 
 model Payment {
-  id          Int      @id @default(autoincrement())
-  voucherId   Int
-
-  amount      Decimal  @db.Decimal(12, 2)
-  createdAt   DateTime @default(now())
-
-  // Auditoría: cuando el pago liquida, guardas lo que aplicaste
+  id                       Int      @id @default(autoincrement())
+  voucherId                Int
+  amount                   Decimal  @db.Decimal(12, 2)
+  createdAt                DateTime @default(now())
   appliedCommissionPercent Decimal? @db.Decimal(5, 2)
   commissionAmount         Decimal? @db.Decimal(12, 2)
 
-  voucher     Voucher  @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+  voucher                  Voucher  @relation(fields: [voucherId], references: [id], onDelete: Cascade)
 
   @@index([voucherId])
 }
